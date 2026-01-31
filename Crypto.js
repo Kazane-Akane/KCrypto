@@ -185,10 +185,23 @@ async function runEncrypt(file, pwdInput) {
             progress.style.width = Math.round((processed / file.size) * 100) + "%";
         }
         
-        const customName = document.getElementById('customName').value;
-        const outName = customName ? `${customName}.KazaneCrypto` : `${file.name}.KazaneCrypto`;
-        saveFile(new Blob(encryptedChunks), outName);
-        logger("加密任务成功完成");
+          const customName = document.getElementById('customName').value;
+          let outName;
+
+          if (customName) {
+              // 如果用户自定义了名字，直接加上 .KazaneCrypto，不再保留原后缀
+              outName = `${customName}.KazaneCrypto`;
+          } else {
+              // 核心修复：确保 .KazaneCrypto 是最后的后缀
+              const originalName = file.name;
+              outName = `${originalName}.KazaneCrypto`;
+          }
+
+          // 关键点：将 Blob 类型设为 application/octet-stream
+          // 这样浏览器就不会识别它为文本文件而强行补全 .txt 了
+          saveFile(new Blob(encryptedChunks, { type: 'application/octet-stream' }), outName);
+
+          logger("加密任务成功完成");
     } catch (e) { logger("错误: " + e.message); }
 }
 
